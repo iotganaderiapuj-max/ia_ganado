@@ -17,15 +17,17 @@ def home():
 
 @app.route('/ttn-data', methods=['POST'])
 def recibir_datos_ttn():
-    """Recibe los datos del TTN (The Things Network)"""
     data = request.get_json()
     print("📩 Datos recibidos:", data)
 
-    temp = data.get('temp_dorsal')
-    temp_amb = data.get('temp_amb')
+    # Si TTN usa formato plano
+    temp = data.get('temp_body_c') or data.get('temp_dorsal')
+    temp_amb = data.get('temp_amb_c') or data.get('temp_amb')
     humedad = data.get('humedad', 65)
-    gps = data.get('gps', {})
-    accel = data.get('acelerometro', {})
+
+    # GPS directo
+    gps = {"lat": data.get('lat'), "lon": data.get('lon')}
+    accel = {"v_max_ms": data.get('v_max_ms'), "v_mean_ms": data.get('v_mean_ms')}
 
     resultados_temp = procesar_temperatura(temp, temp_amb, humedad)
     resultados_accel = procesar_acelerometro(accel)
@@ -38,11 +40,15 @@ def recibir_datos_ttn():
         **resultados_gps
     }
 
-    salida["estado_general"] = "alerta_celo" if salida["estado"] == "posible_celo" and salida["actividad"] == "alta" else salida["estado"]
+    salida["estado_general"] = (
+        "alerta_celo" if salida["estado"] == "posible_celo" and salida["actividad"] == "alta"
+        else salida["estado"]
+    )
 
     enviar_a_thingsboard(THINGSBOARD_URL, salida)
 
     return jsonify(salida), 200
+
 
 if __name__ == '__main__':
     port = int(os.environ.get('PORT', 5000))
