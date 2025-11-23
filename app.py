@@ -58,13 +58,13 @@ def _parse_ttn_v3(body: dict):
         "cow_id":      dec.get("cow_id"),
         "temp_body_c": dec.get("To_c") or dec.get("temp_body_c") or dec.get("temp_dorsal"),
         "temp_amb_c":  dec.get("Ta_c") or dec.get("temp_amb_c")  or dec.get("temp_amb"),
-        "humedad":     dec.get("humedad", 65),
         "v_max_ms":    dec.get("v_max_ms"),
         "v_mean_ms":   dec.get("v_mean_ms"),
         "ODBA_g":      dec.get("ODBA_g"),
         "VeDBA_g":     dec.get("VeDBA_g"),
         "lat":         lat,
         "lon":         lon,
+        "ts_epoch":    dec.get("epoch_s"),  
         "received_local_iso": local_iso
     }
     return norm
@@ -84,6 +84,8 @@ def _parse_flat(body: dict):
         "lat":         body.get("lat"),
         "lon":         body.get("lon"),
         "received_local_iso": None
+        "ts_epoch":    body.get("ts_epoch"),
+
     }
 
 def _handle_uplink():
@@ -123,6 +125,8 @@ def _handle_uplink():
             "timestamp_local": norm["received_local_iso"],
             "dev_id": norm.get("dev_id"),
             "cow_id": norm.get("cow_id"),
+            "ts_epoch": norm.get("ts_epoch"),
+            
             **resultados_temp,
             **resultados_accel,
             **resultados_gps
